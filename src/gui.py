@@ -3,6 +3,18 @@ from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 
+class SessionInfo():
+
+  def __init__(self):
+    self._target_wpm = None
+    self._target_time = None
+
+class SessionWidget(QWidget):
+
+  def __init__(self, session, *args, **kwargs):
+    super(SessionWidget, self).__init__(*args, **kwargs)
+    self._session = session
+
 class MainWindow(QMainWindow):
   
   def __init__(self, *args, **kwargs):
@@ -11,6 +23,7 @@ class MainWindow(QMainWindow):
     # Application Data
     self._target_wpm = 25
     self._target_time = 60
+    self._sound_on = True
 
     # Configure window
     self._app_icon = QIcon()
@@ -20,7 +33,6 @@ class MainWindow(QMainWindow):
     self._app_icon.addFile("assets/icon_48.png", QSize(48, 48))
     self._app_icon.addFile("assets/icon_256.png", QSize(256, 256))
     self.setWindowIcon(self._app_icon)
-
 
     self.setWindowTitle("WPM Trainer")
     self.setFixedSize(640, 480)
@@ -64,7 +76,9 @@ class MainWindow(QMainWindow):
     self._stop_button = QPushButton("Stop")
     self._pause_button = QPushButton("Pause")
     self._reset_button = QPushButton("Reset")
-    self._sound_button = QPushButton("Sound")
+
+    self._sound_button = QPushButton("Sound On")
+    self._sound_button.clicked.connect(self._handle_sound_toggle)
 
     # Add widgets to control
 
@@ -87,6 +101,17 @@ class MainWindow(QMainWindow):
     self._main_widget.setLayout(self._main_layout)
     self.setCentralWidget(self._main_widget)
 
+
+  def _handle_sound_toggle(self):
+    if self._sound_on:
+      self._sound_on = False
+      self._sound_button.setText("Sound Off")
+
+    else:
+      self._sound_on = True
+      self._sound_button.setText("Sound On")
+
+    print(self._sound_on)
 
   """
   Validates wpm input
