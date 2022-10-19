@@ -73,15 +73,3 @@ class KeyboardListener():
   def __count_words(self):
     matches = re.findall("[\w-]+", self._input)
     self.word_count = len(matches)
-
-
-
-
-listener = KeyboardListener()
-
-listener.create_listener()
-
-while len(listener.input) < 100:
-  print("{0} : {1}".format(listener.word_count, listener.input))
-
-listener.release_listener()
