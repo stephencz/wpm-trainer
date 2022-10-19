@@ -1,7 +1,17 @@
 import pygame
+from enum import Enum
 from abc import ABC, abstractmethod
 from entity import EntityManager
 from entity import TimerEntity
+from entity import TargetWPMTrackerEntity
+from entity import TargetTimeTrackerEntity
+from keyboard import KeyboardListener
+
+class SessionState(Enum):
+  INIT    = 1
+  RUNNING = 2
+  PAUSED  = 3
+  END     = 4
 
 """
 The Screen abstract base class provides the interface that
@@ -33,11 +43,21 @@ class GameScreen(Screen):
   def __init__(self, game):
     Screen.__init__(self, game)
 
+    # Configure Game Data
+    self._keyboard_listener = KeyboardListener() 
+    self._session_state = SessionState.INIT
+    self._target_wpm = 25         
+    self._target_time = 60
+
     # Entities
     self._entity_manager = EntityManager()
-    self._entity_timer = TimerEntity()
+    self._entity_wpm_tracker = TargetWPMTrackerEntity(self._game, 30, 30)
+    self._entity_time_tracker = TargetTimeTrackerEntity(self._game, 190, 30)
+    self._entity_timer = TimerEntity(self._game)
 
     self._entity_manager.add(self._entity_timer)
+    self._entity_manager.add(self._entity_wpm_tracker)
+    self._entity_manager.add(self._entity_time_tracker)
 
   def logic(self, deltatime):
     for event in pygame.event.get():
@@ -46,7 +66,6 @@ class GameScreen(Screen):
 
     for entity in self._entity_manager.entities:
       entity.logic(deltatime)
-
 
   def _handle_quit_event(self, event):
     if event.type == pygame.QUIT:

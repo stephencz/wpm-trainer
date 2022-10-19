@@ -10,6 +10,8 @@ class Game():
 
   def __init__(self):
     
+    pygame.font.init()
+
     # Configure the window
     self._should_destroy = False
 
