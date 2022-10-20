@@ -4,6 +4,7 @@ from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 from keylisten import KeyboardListener
+from playsound import playsound
 
 class SessionState(Enum):
   NONE = 1
@@ -31,7 +32,7 @@ class SessionWidget(QWidget):
 
 class MainWindow(QMainWindow):
   
-  TIMER_TICK_RATE = 1000
+  TIMER_TICK_RATE = 100
 
   def __init__(self, *args, **kwargs):
     super(MainWindow, self).__init__(*args, **kwargs)
@@ -141,6 +142,11 @@ class MainWindow(QMainWindow):
         self.session_interval_data.append({'interval': self.intervals_passed, 'word_count': self.keyboard_listener.word_count })
         self.keyboard_listener.input = ""
         self.keyboard_listener.word_count = 0
+
+        if self.session_interval_data[self.intervals_passed - 1]['word_count'] >= self.target_wpm:
+          playsound('assets/chime.wav')
+        else:
+          playsound('assets/buzzer.wav')
 
       else:
         self.seconds_in_interval += 1

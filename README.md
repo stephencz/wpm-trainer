@@ -7,6 +7,11 @@ When the goal is met a pleasant chime is played.
 When the goal is not met a harsh buzz is played.
 A graph visualizing the session results is also generated.
 
+## Note About OS Support
+
+Currently, this software only supports Microsoft Windows operating systems.
+I have plans to provide Linux support in the future.
+
 ## Note About False Positives
 Some anti-virus software may flag this program as a keylogger. 
 This happens because the script actually does contain a keylogger.
