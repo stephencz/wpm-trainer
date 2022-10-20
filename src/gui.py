@@ -1,11 +1,14 @@
-import sys
 from enum import Enum
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 from PyQt6.QtMultimedia import *
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.figure import Figure
+import matplotlib.pyplot
+
 from keylisten import KeyboardListener
-from playsound import playsound
 
 class SessionState(Enum):
   NONE = 1
@@ -25,15 +28,27 @@ class SessionIntervalData():
   def wpm(self, wpm):
     self._wpm = wpm
 
-class SessionWidget(QWidget):
+class SessionPlot(FigureCanvasQTAgg):
 
-  def __init__(self, session, *args, **kwargs):
-    super(SessionWidget, self).__init__(*args, **kwargs)
-    self._session = session
+  def __init__(self, target_wpm, target_time, data, parent=None, width=5, height=3, dpi=100):    
+    self.data = data
+    self.fig = Figure(figsize=(width, height), dpi=dpi)
+
+    self.ax1 = self.fig.add_subplot(1, 1, 1)
+    self.ax1.set_xlabel("Time")
+    self.ax1.set_ylabel("WPM")
+
+    self.ax1.set_xbound(target_time)
+    self.ax1.set_ybound(target_wpm)
+
+    super(SessionPlot, self).__init__(self.fig)
+
+  def plot_figure(self):
+    pass
 
 class MainWindow(QMainWindow):
   
-  TIMER_TICK_RATE = 100
+  TIMER_TICK_RATE = 50
 
   def __init__(self, *args, **kwargs):
     super(MainWindow, self).__init__(*args, **kwargs)
@@ -48,15 +63,6 @@ class MainWindow(QMainWindow):
     self.sound_on = True
     self.keyboard_listener = KeyboardListener()
 
-    self.timer = QTimer()
-    self.timer.timeout.connect(self.handle_timeout)
-
-    self.chime_sound = QSoundEffect()
-    self.chime_sound.setSource(QUrl.fromLocalFile("assets/chime.wav"))
-
-    self.buzzer_sound = QSoundEffect()
-    self.buzzer_sound.setSource(QUrl.fromLocalFile("assets/buzzer.wav"))
-
     # Configure window
     self.app_icon = QIcon()
     self.app_icon.addFile("assets/icon_16.png", QSize(16, 16))
@@ -67,10 +73,21 @@ class MainWindow(QMainWindow):
     self.setWindowIcon(self.app_icon)
 
     self.setWindowTitle("WPM Trainer")
-    self.setFixedSize(640, 480)
+    #self.setFixedSize(640, 480)
 
     self.main_widget = QGroupBox()
     self.main_layout = QVBoxLayout()
+
+    # Configure the QTimer that will be used to control sessions
+    self.timer = QTimer()
+    self.timer.timeout.connect(self.handle_timeout)
+
+    # Load the chime and buzzer sound effects
+    self.chime_sound = QSoundEffect()
+    self.chime_sound.setSource(QUrl.fromLocalFile("assets/chime.wav"))
+
+    self.buzzer_sound = QSoundEffect()
+    self.buzzer_sound.setSource(QUrl.fromLocalFile("assets/buzzer.wav"))
 
     # Create options widget and layout
     self.options_widget = QGroupBox()
@@ -130,6 +147,10 @@ class MainWindow(QMainWindow):
     self.content_widget.setTitle("Session Information")
     self.content_layout = QHBoxLayout()
 
+    # Configure Matplotlib 
+    self.session_plot = SessionPlot(target_wpm=self.target_wpm, target_time=self.target_time, data=self.session_interval_data)
+    self.content_layout.addWidget(self.session_plot)
+
     self.content_widget.setLayout(self.content_layout)
     self.main_layout.addWidget(self.content_widget)
 
@@ -146,11 +167,16 @@ class MainWindow(QMainWindow):
       if self.seconds_in_interval >= 60:
         self.intervals_passed += 1
         self.seconds_in_interval = 0
-        self.session_interval_data.append({'interval': self.intervals_passed, 'word_count': self.keyboard_listener.word_count })
+        self.session_interval_data.append({
+          'interval': self.intervals_passed, 
+          'word_count': self.keyboard_listener.word_count
+          })
         self.keyboard_listener.input = ""
         self.keyboard_listener.word_count = 0
 
-
+        self.session_plot.data = self.session_interval_data
+        self.session_plot.fig.canvas.draw()
+        self.session_plot.fig.canvas.flush_events()
 
         if self.sound_on :
           if self.session_interval_data[self.intervals_passed - 1]['word_count'] >= self.target_wpm:
@@ -243,6 +269,7 @@ class MainWindow(QMainWindow):
       self.target_wpm = 25
       self.wpm_line_edit.setText(str(self.target_wpm))
 
+    self.session_plot = SessionPlot(self.target_wpm)
  
   """
   Validates time input
@@ -261,13 +288,9 @@ class MainWindow(QMainWindow):
     else:
       self.target_time = 60
       self.time_line_edit.setText(str(self.target_time))
+
+    self.session_plot = SessionPlot(self.target_time)
       
       
 
 
-app = QApplication(sys.argv)
-
-window = MainWindow()
-window.show()
-
-app.exec()
