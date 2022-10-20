@@ -30,25 +30,45 @@ class SessionIntervalData():
 
 class SessionPlot(FigureCanvasQTAgg):
 
-  def __init__(self, target_wpm, target_time, data, parent=None, width=5, height=3, dpi=100):    
+  def __init__(self, target_wpm, target_time, data, parent=None, width=4, height=2, dpi=100):    
+    
+    self.target_wpm = target_wpm
+    self.target_time = target_time
+
     self.data = data
     self.fig = Figure(figsize=(width, height), dpi=dpi)
 
     self.ax1 = self.fig.add_subplot(1, 1, 1)
+
+    self.ax1.set_facecolor((0.0, 0.0, 0.0, 1.0))
+
     self.ax1.set_xlabel("Time")
     self.ax1.set_ylabel("WPM")
 
     self.ax1.set_xbound(target_time)
     self.ax1.set_ybound(target_wpm)
 
+    self.ax1.set_autoscalex_on(False)
+
     super(SessionPlot, self).__init__(self.fig)
 
-  def plot_figure(self):
-    pass
+  def update_plot(self):
+    for item in self.data:
+      interval = item['interval']
+      word_count = item['word_count']
+
+      if word_count < self.target_wpm:
+        self.ax1.bar(interval, word_count, color=(1.0, 0.0, 0.0, 1.0))
+
+      else:
+        self.ax1.bar(interval, word_count, color=(0.0, 1.0, 0.0, 1.0))
+
+    self.fig.canvas.draw()
+    self.fig.canvas.flush_events()
 
 class MainWindow(QMainWindow):
   
-  TIMER_TICK_RATE = 50
+  TIMER_TICK_RATE = 100
 
   def __init__(self, *args, **kwargs):
     super(MainWindow, self).__init__(*args, **kwargs)
@@ -73,7 +93,7 @@ class MainWindow(QMainWindow):
     self.setWindowIcon(self.app_icon)
 
     self.setWindowTitle("WPM Trainer")
-    #self.setFixedSize(640, 480)
+    self.setFixedSize(480, 640)
 
     self.main_widget = QGroupBox()
     self.main_layout = QVBoxLayout()
@@ -167,16 +187,18 @@ class MainWindow(QMainWindow):
       if self.seconds_in_interval >= 60:
         self.intervals_passed += 1
         self.seconds_in_interval = 0
+        
         self.session_interval_data.append({
           'interval': self.intervals_passed, 
           'word_count': self.keyboard_listener.word_count
           })
+
+
         self.keyboard_listener.input = ""
         self.keyboard_listener.word_count = 0
 
         self.session_plot.data = self.session_interval_data
-        self.session_plot.fig.canvas.draw()
-        self.session_plot.fig.canvas.flush_events()
+        self.session_plot.update_plot()
 
         if self.sound_on :
           if self.session_interval_data[self.intervals_passed - 1]['word_count'] >= self.target_wpm:
@@ -208,8 +230,16 @@ class MainWindow(QMainWindow):
         self.intervals_passed = 0
         self.seconds_in_interval = 0
 
+        # Disable and enable widgets
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
+        self.wpm_line_edit.setEnabled(False)
+        self.time_line_edit.setEnabled(False)
+
+        # Update plot to represent new session optiosn
+        self.content_layout.removeWidget(self.session_plot)
+        self.session_plot = SessionPlot(self.target_wpm, self.target_time, self.session_interval_data)
+        self.content_layout.addWidget(self.session_plot)
 
         self.keyboard_listener.create_listener()
         self.timer.start(self.TIMER_TICK_RATE)
@@ -233,8 +263,12 @@ class MainWindow(QMainWindow):
     self.intervals_passed = 0
     self.seconds_in_interval = 0
     self.session_interval_data = []
+
     self.start_button.setEnabled(True)
     self.stop_button.setEnabled(False)
+    self.wpm_line_edit.setEnabled(True)
+    self.time_line_edit.setEnabled(True)
+
     self.keyboard_listener.release_listener()
     self.keyboard_listener.reset()
     self.timer.stop()
@@ -268,8 +302,7 @@ class MainWindow(QMainWindow):
     else:
       self.target_wpm = 25
       self.wpm_line_edit.setText(str(self.target_wpm))
-
-    self.session_plot = SessionPlot(self.target_wpm)
+      
  
   """
   Validates time input
@@ -289,8 +322,6 @@ class MainWindow(QMainWindow):
       self.target_time = 60
       self.time_line_edit.setText(str(self.target_time))
 
-    self.session_plot = SessionPlot(self.target_time)
-      
-      
+    
 
 

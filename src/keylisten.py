@@ -54,8 +54,9 @@ class KeyboardListener():
   Releases the KeyboardListener
   """
   def release_listener(self):
-    self.__listener.stop()
-    self.enabled = False
+    if self.__listener != None:
+      self.__listener.stop()
+      self.enabled = False
 
   """
   Resets the Keyboard Listener by clearing it input, resetting
