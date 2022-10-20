@@ -3,6 +3,7 @@ from enum import Enum
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
+from PyQt6.QtMultimedia import *
 from keylisten import KeyboardListener
 from playsound import playsound
 
@@ -49,6 +50,12 @@ class MainWindow(QMainWindow):
 
     self.timer = QTimer()
     self.timer.timeout.connect(self.handle_timeout)
+
+    self.chime_sound = QSoundEffect()
+    self.chime_sound.setSource(QUrl.fromLocalFile("assets/chime.wav"))
+
+    self.buzzer_sound = QSoundEffect()
+    self.buzzer_sound.setSource(QUrl.fromLocalFile("assets/buzzer.wav"))
 
     # Configure window
     self.app_icon = QIcon()
@@ -143,16 +150,20 @@ class MainWindow(QMainWindow):
         self.keyboard_listener.input = ""
         self.keyboard_listener.word_count = 0
 
+
+
         if self.sound_on :
           if self.session_interval_data[self.intervals_passed - 1]['word_count'] >= self.target_wpm:
-            playsound('assets/chime.mp3')
+            self.chime_sound.play()
+
           else:
-            playsound('assets/buzzer.wav')
+            self.buzzer_sound.play()
 
       else:
         self.seconds_in_interval += 1
 
     print("{0} : {1} : {2} : {3}".format(self.intervals_passed, self.seconds_in_interval, self.session_interval_data, self.keyboard_listener.input))
+
 
   """
   Start a new training session.
