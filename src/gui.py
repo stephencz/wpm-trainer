@@ -3,6 +3,7 @@ from enum import Enum
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
+from keylisten import KeyboardListener
 
 class SessionState(Enum):
   NONE = 1
@@ -43,6 +44,7 @@ class MainWindow(QMainWindow):
     self.target_wpm = 25
     self.target_time = 60
     self.sound_on = True
+    self.keyboard_listener = KeyboardListener()
 
     self.timer = QTimer()
     self.timer.timeout.connect(self.handle_timeout)
@@ -129,17 +131,21 @@ class MainWindow(QMainWindow):
 
   def handle_timeout(self):
     if self.intervals_passed >= self.target_time:
+      self.keyboard_listener.release_listener()
       self.timer.stop()
 
     else:
       if self.seconds_in_interval >= 60:
         self.intervals_passed += 1
         self.seconds_in_interval = 0
+        self.session_interval_data.append({'interval': self.intervals_passed, 'word_count': self.keyboard_listener.word_count })
+        self.keyboard_listener.input = 0
+        self.keyboard_listener.word_count = 0
 
       else:
         self.seconds_in_interval += 1
 
-    print("{0} : {1}".format(self.intervals_passed, self.seconds_in_interval))
+    print("{0} : {1} : {2}".format(self.intervals_passed, self.seconds_in_interval, self.session_interval_data))
 
   """
   Start a new training session.
@@ -149,6 +155,7 @@ class MainWindow(QMainWindow):
       self.session_state = SessionState.ACTIVE
       self.start_button.setEnabled(False)
       self.stop_button.setEnabled(True)
+      self.keyboard_listener.enabled = True
       self.timer.start(self.TIMER_TICK_RATE)
 
     else:
@@ -160,6 +167,7 @@ class MainWindow(QMainWindow):
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
 
+        self.keyboard_listener.create_listener()
         self.timer.start(self.TIMER_TICK_RATE)
 
   """
@@ -169,6 +177,7 @@ class MainWindow(QMainWindow):
     self.session_state = SessionState.PAUSED
     self.start_button.setEnabled(True)
     self.stop_button.setEnabled(False)
+    self.keyboard_listener.enabled = False
     self.timer.stop()
     
 
@@ -182,6 +191,8 @@ class MainWindow(QMainWindow):
     self.session_interval_data = []
     self.start_button.setEnabled(True)
     self.stop_button.setEnabled(False)
+    self.keyboard_listener.release_listener()
+    self.keyboard_listener.reset()
     self.timer.stop()
 
   """
