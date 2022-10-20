@@ -8,7 +8,19 @@ class SessionState(Enum):
   NONE = 1
   ACTIVE = 2
   PAUSED = 3
-  FINISHED = 4
+
+class SessionIntervalData():
+
+  def __init__(self, wpm):
+    self._wpm = wpm
+
+  @property
+  def wpm(self):
+    return self._wpm
+
+  @wpm.setter
+  def wpm(self, wpm):
+    self._wpm = wpm
 
 class SessionWidget(QWidget):
 
@@ -18,16 +30,22 @@ class SessionWidget(QWidget):
 
 class MainWindow(QMainWindow):
   
+  TIMER_TICK_RATE = 100
+
   def __init__(self, *args, **kwargs):
     super(MainWindow, self).__init__(*args, **kwargs)
 
     # Application Data
     self.session_state = SessionState.NONE
-    self.session_data = []
+    self.session_interval_data = []
+    self.intervals_passed = 0
+    self.seconds_in_interval = 0 
     self.target_wpm = 25
     self.target_time = 60
     self.sound_on = True
 
+    self.timer = QTimer()
+    self.timer.timeout.connect(self.handle_timeout)
 
     # Configure window
     self.app_icon = QIcon()
@@ -79,8 +97,9 @@ class MainWindow(QMainWindow):
     self.start_button = QPushButton("Start")
     self.start_button.clicked.connect(self.handle_start_session)
 
-    self.stop_button = QPushButton("Pause")
-    self.stop_button.clicked.connect(self.handle_pause_session)
+    self.stop_button = QPushButton("Stop")
+    self.stop_button.setEnabled(False)
+    self.stop_button.clicked.connect(self.handle_stop_session)
     
     self.reset_button = QPushButton("Reset")
     self.reset_button.clicked.connect(self.handle_reset_session)
@@ -91,7 +110,6 @@ class MainWindow(QMainWindow):
     # Add widgets to control
     self.control_layout.addWidget(self.start_button)
     self.control_layout.addWidget(self.stop_button)
-    self.control_layout.addWidget(self.pause_button)
     self.control_layout.addWidget(self.reset_button)
     self.control_layout.addWidget(self.sound_button)
     self.control_widget.setLayout(self.control_layout)
@@ -109,24 +127,62 @@ class MainWindow(QMainWindow):
     self.setCentralWidget(self.main_widget)
 
 
+  def handle_timeout(self):
+    if self.intervals_passed >= self.target_time:
+      self.timer.stop()
+
+    else:
+      if self.seconds_in_interval >= 60:
+        self.intervals_passed += 1
+        self.seconds_in_interval = 0
+
+      else:
+        self.seconds_in_interval += 1
+
+    print("{0} : {1}".format(self.intervals_passed, self.seconds_in_interval))
+
   """
   Start a new training session.
   """
   def handle_start_session(self):
-    self.session_state = SessionState.ACTIVE
+    if self.session_state == SessionState.PAUSED:
+      self.session_state = SessionState.ACTIVE
+      self.start_button.setEnabled(False)
+      self.stop_button.setEnabled(True)
+      self.timer.start(self.TIMER_TICK_RATE)
+
+    else:
+      if self.session_state != SessionState.ACTIVE:
+        self.session_state = SessionState.ACTIVE
+        self.intervals_passed = 0
+        self.seconds_in_interval = 0
+
+        self.start_button.setEnabled(False)
+        self.stop_button.setEnabled(True)
+
+        self.timer.start(self.TIMER_TICK_RATE)
 
   """
-  Pauses the current training session.
+  Stop the current training session.
   """
-  def handle_pause_session(self):
+  def handle_stop_session(self):
     self.session_state = SessionState.PAUSED
+    self.start_button.setEnabled(True)
+    self.stop_button.setEnabled(False)
+    self.timer.stop()
+    
 
   """
   Resets the current training session.
   """
   def handle_reset_session(self):
-    self.session_data = []
     self.session_state = SessionState.NONE
+    self.intervals_passed = 0
+    self.seconds_in_interval = 0
+    self.session_interval_data = []
+    self.start_button.setEnabled(True)
+    self.stop_button.setEnabled(False)
+    self.timer.stop()
 
   """
   Toggles sound on/off.
