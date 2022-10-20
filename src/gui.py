@@ -31,7 +31,7 @@ class SessionWidget(QWidget):
 
 class MainWindow(QMainWindow):
   
-  TIMER_TICK_RATE = 100
+  TIMER_TICK_RATE = 1000
 
   def __init__(self, *args, **kwargs):
     super(MainWindow, self).__init__(*args, **kwargs)
@@ -139,13 +139,13 @@ class MainWindow(QMainWindow):
         self.intervals_passed += 1
         self.seconds_in_interval = 0
         self.session_interval_data.append({'interval': self.intervals_passed, 'word_count': self.keyboard_listener.word_count })
-        self.keyboard_listener.input = 0
+        self.keyboard_listener.input = ""
         self.keyboard_listener.word_count = 0
 
       else:
         self.seconds_in_interval += 1
 
-    print("{0} : {1} : {2}".format(self.intervals_passed, self.seconds_in_interval, self.session_interval_data))
+    print("{0} : {1} : {2} : {3}".format(self.intervals_passed, self.seconds_in_interval, self.session_interval_data, self.keyboard_listener.input))
 
   """
   Start a new training session.

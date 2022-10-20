@@ -13,5 +13,6 @@ This happens because the script actually does contain a keylogger.
 For the software to work, keystrokes must be recorded no matter which software the user is writing with.
 Keystrokes are only recorded while a training session is running.
 Recorded keystrokes are recorded and discarded every minute, and all results are discarded when a session ends or is reset.
+
 Keystrokes **are not** recorded outside of training sessions or when the software isn't running.
 You can verify this for yourself by viewing the *gui.py* and *keylisten.py* modules.

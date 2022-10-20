@@ -85,6 +85,9 @@ class KeyboardListener():
       except AttributeError:
         pass
 
+    
+
   def __count_words(self):
+    self._input = re.sub(r'[^A-Za-z0-9 ]+', '', self._input)
     matches = re.findall("[\w-]+", self._input)
     self.word_count = len(matches)
