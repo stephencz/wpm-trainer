@@ -143,10 +143,11 @@ class MainWindow(QMainWindow):
         self.keyboard_listener.input = ""
         self.keyboard_listener.word_count = 0
 
-        if self.session_interval_data[self.intervals_passed - 1]['word_count'] >= self.target_wpm:
-          playsound('assets/chime.wav')
-        else:
-          playsound('assets/buzzer.wav')
+        if self.sound_on :
+          if self.session_interval_data[self.intervals_passed - 1]['word_count'] >= self.target_wpm:
+            playsound('assets/chime.mp3')
+          else:
+            playsound('assets/buzzer.wav')
 
       else:
         self.seconds_in_interval += 1
