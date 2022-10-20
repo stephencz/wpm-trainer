@@ -74,8 +74,9 @@ class KeyboardListener():
           self.__count_words()
 
         elif key == keyboard.Key.backspace:
-          self._input = self._input[:-1]
-          self.__count_words()
+          if len(self._input) > 0:
+            self._input = self._input[:-1]
+            self.__count_words()
 
         else:
           self._input += str(key.char)
