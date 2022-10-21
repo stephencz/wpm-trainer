@@ -6,7 +6,6 @@ from PyQt6.QtMultimedia import *
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-import matplotlib.pyplot
 
 from keylisten import KeyboardListener
 
@@ -47,6 +46,7 @@ class SessionPlot(FigureCanvasQTAgg):
 
     self.ax1.set_xbound(target_time)
     self.ax1.set_ybound(target_wpm)
+    self.ax1.set_ylim(-1)
 
     self.ax1.set_autoscalex_on(False)
 
@@ -68,7 +68,7 @@ class SessionPlot(FigureCanvasQTAgg):
 
 class MainWindow(QMainWindow):
   
-  TIMER_TICK_RATE = 100
+  TIMER_TICK_RATE = 50
 
   def __init__(self, *args, **kwargs):
     super(MainWindow, self).__init__(*args, **kwargs)
@@ -165,11 +165,28 @@ class MainWindow(QMainWindow):
     # Creat content widgets and layouts
     self.content_widget = QGroupBox()
     self.content_widget.setTitle("Session Information")
-    self.content_layout = QHBoxLayout()
 
-    # Configure Matplotlib 
+    # Create Tab widget and layout for GroupBox
+    self.content_layout = QHBoxLayout()
+    self.content_tab = QTabWidget()
+    self.content_layout.addWidget(self.content_tab)
+
+    # Statistics Tab
+    self.statistics_tab_widget = QWidget()
+    self.statistics_tab_layout = QHBoxLayout()
+
+    self.statistics_tab_widget.setLayout(self.statistics_tab_layout)
+    self.content_tab.addTab(self.statistics_tab_widget, "Statistics")
+
+
+    # Configure Graph Tab 
+    self.session_plot_widget = QWidget()
+    self.session_plot_layout = QHBoxLayout()
     self.session_plot = SessionPlot(target_wpm=self.target_wpm, target_time=self.target_time, data=self.session_interval_data)
-    self.content_layout.addWidget(self.session_plot)
+
+    self.session_plot_layout.addWidget(self.session_plot)
+    self.session_plot_widget.setLayout(self.session_plot_layout)
+    self.content_tab.addTab(self.session_plot_widget, "Graph")
 
     self.content_widget.setLayout(self.content_layout)
     self.main_layout.addWidget(self.content_widget)
@@ -210,8 +227,6 @@ class MainWindow(QMainWindow):
       else:
         self.seconds_in_interval += 1
 
-    print("{0} : {1} : {2} : {3}".format(self.intervals_passed, self.seconds_in_interval, self.session_interval_data, self.keyboard_listener.input))
-
 
   """
   Start a new training session.
@@ -237,9 +252,9 @@ class MainWindow(QMainWindow):
         self.time_line_edit.setEnabled(False)
 
         # Update plot to represent new session optiosn
-        self.content_layout.removeWidget(self.session_plot)
+        self.session_plot_layout.removeWidget(self.session_plot)
         self.session_plot = SessionPlot(self.target_wpm, self.target_time, self.session_interval_data)
-        self.content_layout.addWidget(self.session_plot)
+        self.session_plot_layout.addWidget(self.session_plot)
 
         self.keyboard_listener.create_listener()
         self.timer.start(self.TIMER_TICK_RATE)
