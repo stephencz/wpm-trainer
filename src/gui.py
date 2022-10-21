@@ -68,7 +68,7 @@ class SessionPlot(FigureCanvasQTAgg):
 
 class MainWindow(QMainWindow):
   
-  TIMER_TICK_RATE = 50
+  TIMER_TICK_RATE = 1000
 
   def __init__(self, *args, **kwargs):
     super(MainWindow, self).__init__(*args, **kwargs)
