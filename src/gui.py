@@ -1,3 +1,4 @@
+import datetime
 from enum import Enum
 from PyQt6.QtGui import *
 from PyQt6.QtWidgets import *
@@ -46,9 +47,6 @@ class SessionPlot(FigureCanvasQTAgg):
 
     self.ax1.set_xbound(target_time)
     self.ax1.set_ybound(target_wpm)
-    self.ax1.set_ylim(-1)
-
-    self.ax1.set_autoscalex_on(False)
 
     super(SessionPlot, self).__init__(self.fig)
 
@@ -76,11 +74,15 @@ class MainWindow(QMainWindow):
     # Application Data
     self.session_state = SessionState.NONE
     self.session_interval_data = []
+
     self.intervals_passed = 0
     self.seconds_in_interval = 0 
+
     self.target_wpm = 25
     self.target_time = 60
+
     self.sound_on = True
+
     self.keyboard_listener = KeyboardListener()
 
     # Configure window
@@ -92,7 +94,7 @@ class MainWindow(QMainWindow):
     self.app_icon.addFile("assets/icon_256.png", QSize(256, 256))
     self.setWindowIcon(self.app_icon)
 
-    self.setWindowTitle("WPM Trainer")
+    self.setWindowTitle("WPM Trainer | 0:00:00 | 0 words")
     self.setFixedSize(480, 640)
 
     self.main_widget = QGroupBox()
@@ -171,14 +173,6 @@ class MainWindow(QMainWindow):
     self.content_tab = QTabWidget()
     self.content_layout.addWidget(self.content_tab)
 
-    # Statistics Tab
-    self.statistics_tab_widget = QWidget()
-    self.statistics_tab_layout = QHBoxLayout()
-
-    self.statistics_tab_widget.setLayout(self.statistics_tab_layout)
-    self.content_tab.addTab(self.statistics_tab_widget, "Statistics")
-
-
     # Configure Graph Tab 
     self.session_plot_widget = QWidget()
     self.session_plot_layout = QHBoxLayout()
@@ -187,6 +181,16 @@ class MainWindow(QMainWindow):
     self.session_plot_layout.addWidget(self.session_plot)
     self.session_plot_widget.setLayout(self.session_plot_layout)
     self.content_tab.addTab(self.session_plot_widget, "Graph")
+
+    # Statistics Tab
+    self.statistics_tab_widget = QWidget()
+    self.statistics_tab_layout = QGridLayout()
+
+    self.current_interval_label = QLabel()
+    self.current_interval_label.setText("Interval: ")
+
+    self.statistics_tab_widget.setLayout(self.statistics_tab_layout)
+    self.content_tab.addTab(self.statistics_tab_widget, "Statistics")
 
     self.content_widget.setLayout(self.content_layout)
     self.main_layout.addWidget(self.content_widget)
@@ -201,6 +205,7 @@ class MainWindow(QMainWindow):
       self.timer.stop()
 
     else:
+
       if self.seconds_in_interval >= 60:
         self.intervals_passed += 1
         self.seconds_in_interval = 0
@@ -226,6 +231,13 @@ class MainWindow(QMainWindow):
 
       else:
         self.seconds_in_interval += 1
+
+      seconds_passed = (self.intervals_passed * 60) + self.seconds_in_interval
+      formatted_time = str(datetime.timedelta(seconds=seconds_passed))
+      word_count = self.keyboard_listener.word_count
+
+
+      self.setWindowTitle("WPM Trainer | {0} | {1} words".format(formatted_time, word_count))
 
 
   """
@@ -274,6 +286,8 @@ class MainWindow(QMainWindow):
   Resets the current training session.
   """
   def handle_reset_session(self):
+    self.setWindowTitle("WPM Trainer | 0:00:00 | 0 words")
+
     self.session_state = SessionState.NONE
     self.intervals_passed = 0
     self.seconds_in_interval = 0
