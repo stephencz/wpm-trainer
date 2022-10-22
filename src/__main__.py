@@ -9,6 +9,7 @@ from PyQt6.QtCore import *
 from PyQt6.QtMultimedia import *
 from gui import MainWindow
 
+
 def main():
   app = QApplication(sys.argv)
 

@@ -189,6 +189,8 @@ class MainWindow(QMainWindow):
     self.current_interval_label = QLabel()
     self.current_interval_label.setText("Interval: ")
 
+    self.statistics_tab_layout.addWidget(self.current_interval_label, 0, 0)
+
     self.statistics_tab_widget.setLayout(self.statistics_tab_layout)
     self.content_tab.addTab(self.statistics_tab_widget, "Statistics")
 
