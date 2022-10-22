@@ -66,7 +66,7 @@ class SessionPlot(FigureCanvasQTAgg):
 
 class MainWindow(QMainWindow):
   
-  TIMER_TICK_RATE = 50
+  TIMER_TICK_RATE = 1000
 
   def __init__(self, *args, **kwargs):
     super(MainWindow, self).__init__(*args, **kwargs)
@@ -97,8 +97,52 @@ class MainWindow(QMainWindow):
     self.setWindowTitle("WPM Trainer | 0:00:00 | 0 words")
     self.setFixedSize(480, 640)
 
+    
+    # Create Widgets
     self.main_widget = QGroupBox()
     self.main_layout = QVBoxLayout()
+
+    # Create menu bar
+    self.menu_bar = QMenuBar()
+    self.file_menu = self.menu_bar.addMenu("File")
+    self.presets_menu = self.menu_bar.addMenu("Presets")
+    self.about_menu = self.menu_bar.addMenu("About")
+    
+    self.preset_500_wpm = self.presets_menu.addAction("500 WPH")
+    self.preset_500_wpm.triggered.connect(lambda: self.set_preset(8, 60))
+
+    self.preset_600_wpm = self.presets_menu.addAction("600 WPH")
+    self.preset_600_wpm.triggered.connect(lambda: self.set_preset(10, 60))
+
+    self.preset_800_wpm = self.presets_menu.addAction("800 WPH")
+    self.preset_800_wpm.triggered.connect(lambda: self.set_preset(13, 60))
+
+    self.preset_1000_wpm = self.presets_menu.addAction("1000 WPH")
+    self.preset_1000_wpm.triggered.connect(lambda: self.set_preset(17, 60))
+
+    self.preset_1500_wpm = self.presets_menu.addAction("1500 WPH")
+    self.preset_1500_wpm.triggered.connect(lambda: self.set_preset(25, 60))
+
+    self.preset_2000_wpm = self.presets_menu.addAction("2000 WPH")
+    self.preset_2000_wpm.triggered.connect(lambda: self.set_preset(33, 60))
+
+    self.preset_2500_wpm = self.presets_menu.addAction("2500 WPH")
+    self.preset_2500_wpm.triggered.connect(lambda: self.set_preset(42, 60))
+
+    self.preset_3000_wpm = self.presets_menu.addAction("3000 WPH")
+    self.preset_3000_wpm.triggered.connect(lambda: self.set_preset(50, 60))
+
+    self.preset_4000_wpm = self.presets_menu.addAction("4000 WPH")
+    self.preset_4000_wpm.triggered.connect(lambda: self.set_preset(67, 60))
+
+    self.preset_5000_wpm = self.presets_menu.addAction("5000 WPH")
+    self.preset_5000_wpm.triggered.connect(lambda: self.set_preset(83, 60))
+
+    self.preset_6000_wpm = self.presets_menu.addAction("6000 WPH")
+    self.preset_6000_wpm.triggered.connect(lambda: self.set_preset(100, 60))
+
+    self.main_layout.addWidget(self.menu_bar)
+
 
     # Configure the QTimer that will be used to control sessions
     self.timer = QTimer()
@@ -211,6 +255,14 @@ class MainWindow(QMainWindow):
 
     self.main_widget.setLayout(self.main_layout)
     self.setCentralWidget(self.main_widget)
+
+  def set_preset(self, wpm, time):
+    if(self.session_state == SessionState.NONE):
+      self.target_wpm = wpm
+      self.target_time = time
+
+      self.wpm_line_edit.setText(str(self.target_wpm))
+      self.time_line_edit.setText(str(self.target_time))
 
   def handle_timeout(self):
     if self.intervals_passed >= self.target_time:
