@@ -66,7 +66,7 @@ class SessionPlot(FigureCanvasQTAgg):
 
 class MainWindow(QMainWindow):
   
-  TIMER_TICK_RATE = 1000
+  TIMER_TICK_RATE = 50
 
   def __init__(self, *args, **kwargs):
     super(MainWindow, self).__init__(*args, **kwargs)
@@ -189,7 +189,19 @@ class MainWindow(QMainWindow):
     self.current_interval_label = QLabel()
     self.current_interval_label.setText("Interval: ")
 
-    self.statistics_tab_layout.addWidget(self.current_interval_label, 0, 0)
+    self.current_interval_value_label = QLabel()
+    self.current_interval_value_label.setText("1")
+
+    self.current_time_label = QLabel()
+    self.current_time_label.setText("Session Time: ")
+
+    self.current_time_value_label = QLabel()
+    self.current_time_value_label.setText("0:00:0")
+
+    self.statistics_tab_layout.addWidget(self.current_time_label, 0, 0)
+    self.statistics_tab_layout.addWidget(self.current_time_value_label, 0 , 1)
+    self.statistics_tab_layout.addWidget(self.current_interval_label, 1, 0)
+    self.statistics_tab_layout.addWidget(self.current_interval_value_label, 1, 1)
 
     self.statistics_tab_widget.setLayout(self.statistics_tab_layout)
     self.content_tab.addTab(self.statistics_tab_widget, "Statistics")
@@ -199,7 +211,6 @@ class MainWindow(QMainWindow):
 
     self.main_widget.setLayout(self.main_layout)
     self.setCentralWidget(self.main_widget)
-
 
   def handle_timeout(self):
     if self.intervals_passed >= self.target_time:
@@ -224,6 +235,8 @@ class MainWindow(QMainWindow):
         self.session_plot.data = self.session_interval_data
         self.session_plot.update_plot()
 
+        self.current_interval_value_label.setText(str(self.intervals_passed + 1))
+
         if self.sound_on :
           if self.session_interval_data[self.intervals_passed - 1]['word_count'] >= self.target_wpm:
             self.chime_sound.play()
@@ -238,8 +251,8 @@ class MainWindow(QMainWindow):
       formatted_time = str(datetime.timedelta(seconds=seconds_passed))
       word_count = self.keyboard_listener.word_count
 
-
       self.setWindowTitle("WPM Trainer | {0} | {1} words".format(formatted_time, word_count))
+      self.current_time_value_label.setText(formatted_time)
 
 
   """
@@ -299,6 +312,8 @@ class MainWindow(QMainWindow):
     self.stop_button.setEnabled(False)
     self.wpm_line_edit.setEnabled(True)
     self.time_line_edit.setEnabled(True)
+
+    self.current_interval_value_label.setText("1")
 
     self.keyboard_listener.release_listener()
     self.keyboard_listener.reset()
