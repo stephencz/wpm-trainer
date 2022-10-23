@@ -42,6 +42,8 @@ class SessionPlot(FigureCanvasQTAgg):
 
     self.ax1.set_facecolor((0.0, 0.0, 0.0, 1.0))
 
+    self.ax1.set_title("Time: 0:00:00  Words: 0")
+
     self.ax1.set_xlabel("Time")
     self.ax1.set_ylabel("WPM")
 
@@ -304,8 +306,11 @@ class MainWindow(QMainWindow):
       word_count = self.keyboard_listener.word_count
 
       self.setWindowTitle("WPM Trainer | {0} | {1} words".format(formatted_time, word_count))
+      self.session_plot.ax1.set_title("Time: {0}  Words: {1}".format(formatted_time, word_count))
       self.current_time_value_label.setText(formatted_time)
 
+      self.session_plot.fig.canvas.draw()
+      self.session_plot.fig.canvas.flush_events()
 
   """
   Start a new training session.
@@ -370,6 +375,13 @@ class MainWindow(QMainWindow):
     self.keyboard_listener.release_listener()
     self.keyboard_listener.reset()
     self.timer.stop()
+
+    self.session_plot.ax1.set_title("Time: 0:00:00  Words: 0")
+    self.session_plot.data = self.session_interval_data
+    self.session_plot.update_plot()
+    
+    self.session_plot.fig.canvas.draw()
+    self.session_plot.fig.canvas.flush_events()
 
   """
   Toggles sound on/off.

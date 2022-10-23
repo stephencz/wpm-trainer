@@ -7,10 +7,17 @@ When the goal is met a pleasant chime is played.
 When the goal is not met a harsh buzz is played.
 A graph visualizing the session results is also generated.
 
-## Note About OS Support
+## How should I use this software?
 
-Currently, this software only supports Microsoft Windows operating systems.
-I have plans to provide Linux support in the future.
+There are two ways to use this software.
+
+Firstly, you can use it to train yourself to write faster. 
+If you set the words per minute to, let's say, 50 WPM, then you can force yourself to write that many words in each minute.
+The words you write will probably not be of the highest quality, but you will have a high output if you can keep up with the target WPM.
+
+The second, and more powerful way, go use this software is to set it to a lower WPM (10-25 WPM works nicely).
+With lower WPM requirements, you can still have time to think about what you are writing, but also gaurentee an output.
+As someone who over edits my first drafts, and can waste hours fiddling with a single paragraph, this is how I use the software. 
 
 ## Note About False Positives
 Some anti-virus software may flag this program as a keylogger. 
@@ -21,3 +28,9 @@ Recorded keystrokes are recorded and discarded every minute, and all results are
 
 Keystrokes **are not** recorded outside of training sessions or when the software isn't running.
 You can verify this for yourself by viewing the *gui.py* and *keylisten.py* modules.
+
+## Note About OS Support
+
+Currently, this software only supports Microsoft Windows operating systems.
+I have plans to provide Linux support in the future.
+
