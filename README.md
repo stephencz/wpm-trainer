@@ -15,8 +15,9 @@ Firstly, you can use it to train yourself to write faster.
 If you set the words per minute to, let's say, 50 WPM, then you can force yourself to write that many words in each minute.
 The words you write will probably not be of the highest quality, but you will have a high output if you can keep up with the target WPM.
 
-The second, and more powerful way, go use this software is to set it to a lower WPM (10-25 WPM works nicely).
+The second, and more powerful way, to use this software is to set it to a lower WPM (10-25 WPM works nicely).
 With lower WPM requirements, you can still have time to think about what you are writing, but also gaurentee an output.
+For example, at 10 WPM you would have a minimum output of at least 600 WPH.
 As someone who over edits my first drafts, and can waste hours fiddling with a single paragraph, this is how I use the software. 
 
 ## Note About False Positives
