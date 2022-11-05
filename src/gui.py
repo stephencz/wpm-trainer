@@ -15,18 +15,164 @@ class SessionState(Enum):
   ACTIVE = 2
   PAUSED = 3
 
-class SessionIntervalData():
+class ApplicationData():
+  """
+  The ApplicationData object is a wrapper for all data that
+  the application needs to keep track of during its lifetime.
+  """
 
-  def __init__(self, wpm):
-    self._wpm = wpm
+  def __init__(self):
+    
+    self._session_state = SessionState.NONE
+    """The state of the current session. See SessionState enum."""
+
+    self._session_interval_data = []
+    """An array of dicts containing information about session's intervals."""
+
+    self._intervals_passed = 0
+    """The number of intervals passed in the session."""
+
+    self._seconds_in_interval = 0 
+    """The seconds in the current interval."""
+
+    self._target_wpm = 25
+    """The number of words the user is trying to write per minute."""
+
+    self._target_time = 60
+    """The time in minutes, or number of minute long intervals, the user is writing for."""
+
+    self._keyboard_listener = KeyboardListener()
+    """KeyboardListener object for determining wpm."""
+
+    self._sound_on = True
+    """True sound is on. False sound is off."""
 
   @property
-  def wpm(self):
-    return self._wpm
+  def session_state(self):
+    return self._session_state
 
-  @wpm.setter
-  def wpm(self, wpm):
-    self._wpm = wpm
+  @session_state.setter
+  def session_state(self, state):
+    self._session_state = state
+
+  @property
+  def session_interval_data(self):
+    return self._session_interval_data
+
+  @session_interval_data.setter
+  def session_interval_data(self, data):
+    self._session_interval_data = data
+
+  @property
+  def intervals_passed(self):
+    return self._intervals_passed
+
+  @intervals_passed.setter
+  def intervals_passed(self, intervals):
+    self._intervals_passed = intervals
+
+  @property
+  def target_wpm(self):
+    return self._target_wpm
+
+  @target_wpm.setter
+  def target_wpm(self, wpm):
+    self._target_time = wpm
+
+  @property
+  def target_time(self):
+    return self._target_time
+
+  @target_time.setter
+  def target_time(self, time):
+    self._target_time = time
+
+  @property
+  def keyboard_listener(self):
+    return self._keyboard_listener
+
+  @property
+  def sound_on(self):
+    return self._sound_on
+
+  @sound_on.setter
+  def sound_on(self, state):
+    self._sound_on = state
+
+class SessionMenuBarWidget(QWidget):
+
+  def __init__(self, appdata, *args, **kwargs):
+    super(SessionMenuBarWidget, self).__init__(*args, *kwargs)
+    self._appdata = appdata
+
+    # Create menu bar
+    self.menu_bar = QMenuBar()
+    self.file_menu = self.menu_bar.addMenu("File")
+    self.presets_menu = self.menu_bar.addMenu("Presets")
+    self.about_menu = self.menu_bar.addMenu("About")
+    
+    self.preset_500_wpm = self.presets_menu.addAction("500 WPH")
+    self.preset_500_wpm.triggered.connect(lambda: self.set_preset(8, 60))
+
+    self.preset_600_wpm = self.presets_menu.addAction("600 WPH")
+    self.preset_600_wpm.triggered.connect(lambda: self.set_preset(10, 60))
+
+    self.preset_800_wpm = self.presets_menu.addAction("800 WPH")
+    self.preset_800_wpm.triggered.connect(lambda: self.set_preset(13, 60))
+
+    self.preset_1000_wpm = self.presets_menu.addAction("1000 WPH")
+    self.preset_1000_wpm.triggered.connect(lambda: self.set_preset(17, 60))
+
+    self.preset_1500_wpm = self.presets_menu.addAction("1500 WPH")
+    self.preset_1500_wpm.triggered.connect(lambda: self.set_preset(25, 60))
+
+    self.preset_2000_wpm = self.presets_menu.addAction("2000 WPH")
+    self.preset_2000_wpm.triggered.connect(lambda: self.set_preset(33, 60))
+
+    self.preset_2500_wpm = self.presets_menu.addAction("2500 WPH")
+    self.preset_2500_wpm.triggered.connect(lambda: self.set_preset(42, 60))
+
+    self.preset_3000_wpm = self.presets_menu.addAction("3000 WPH")
+    self.preset_3000_wpm.triggered.connect(lambda: self.set_preset(50, 60))
+
+    self.preset_4000_wpm = self.presets_menu.addAction("4000 WPH")
+    self.preset_4000_wpm.triggered.connect(lambda: self.set_preset(67, 60))
+
+    self.preset_5000_wpm = self.presets_menu.addAction("5000 WPH")
+    self.preset_5000_wpm.triggered.connect(lambda: self.set_preset(83, 60))
+
+    self.preset_6000_wpm = self.presets_menu.addAction("6000 WPH")
+    self.preset_6000_wpm.triggered.connect(lambda: self.set_preset(100, 60))
+
+    # Create signal for preset being changed.
+    self.preset_changed = pyqtSignal([int], [int])
+  
+  def set_preset(self, wpm, time):
+    if(self._appdata.session_state == SessionState.NONE):
+      self._appdata.target_wpm = wpm
+      self._appdata.target_time = time
+      self.preset_changed.emit(self._appdata.target_wpm, self._appdata.target_time)
+
+      # How do I get the MenuBar widget to set the text of the SessionOptionsWidget when
+      # changed? This is an issue I need to figure out how to solve it.s
+      # self.wpm_line_edit.setText(str(self.target_wpm))
+      # self.time_line_edit.setText(str(self.target_time))
+
+class SessionOptionsWidget(QWidget):
+  """
+  The SessionOptionsWidget provides the functionality for setting
+  the applications target words per minute and target time in minutes
+  for the next training session.
+  """
+  
+  def __init__(self, appdata, *args, **kwargs):
+    super(SessionOptionsWidget, self).__init__(*args, **kwargs)
+
+class SessionControlsWidget(QWidget):
+  pass
+
+class SessionInformationWidget(QWidget):
+  pass
 
 class SessionPlot(FigureCanvasQTAgg):
 
@@ -73,6 +219,8 @@ class MainWindow(QMainWindow):
   def __init__(self, *args, **kwargs):
     super(MainWindow, self).__init__(*args, **kwargs)
 
+    self._appdata = ApplicationData()
+
     # Application Data
     self.session_state = SessionState.NONE
     self.session_interval_data = []
@@ -104,47 +252,9 @@ class MainWindow(QMainWindow):
     self.main_widget = QGroupBox()
     self.main_layout = QVBoxLayout()
 
-    # Create menu bar
-    self.menu_bar = QMenuBar()
-    self.file_menu = self.menu_bar.addMenu("File")
-    self.presets_menu = self.menu_bar.addMenu("Presets")
-    self.about_menu = self.menu_bar.addMenu("About")
-    
-    self.preset_500_wpm = self.presets_menu.addAction("500 WPH")
-    self.preset_500_wpm.triggered.connect(lambda: self.set_preset(8, 60))
-
-    self.preset_600_wpm = self.presets_menu.addAction("600 WPH")
-    self.preset_600_wpm.triggered.connect(lambda: self.set_preset(10, 60))
-
-    self.preset_800_wpm = self.presets_menu.addAction("800 WPH")
-    self.preset_800_wpm.triggered.connect(lambda: self.set_preset(13, 60))
-
-    self.preset_1000_wpm = self.presets_menu.addAction("1000 WPH")
-    self.preset_1000_wpm.triggered.connect(lambda: self.set_preset(17, 60))
-
-    self.preset_1500_wpm = self.presets_menu.addAction("1500 WPH")
-    self.preset_1500_wpm.triggered.connect(lambda: self.set_preset(25, 60))
-
-    self.preset_2000_wpm = self.presets_menu.addAction("2000 WPH")
-    self.preset_2000_wpm.triggered.connect(lambda: self.set_preset(33, 60))
-
-    self.preset_2500_wpm = self.presets_menu.addAction("2500 WPH")
-    self.preset_2500_wpm.triggered.connect(lambda: self.set_preset(42, 60))
-
-    self.preset_3000_wpm = self.presets_menu.addAction("3000 WPH")
-    self.preset_3000_wpm.triggered.connect(lambda: self.set_preset(50, 60))
-
-    self.preset_4000_wpm = self.presets_menu.addAction("4000 WPH")
-    self.preset_4000_wpm.triggered.connect(lambda: self.set_preset(67, 60))
-
-    self.preset_5000_wpm = self.presets_menu.addAction("5000 WPH")
-    self.preset_5000_wpm.triggered.connect(lambda: self.set_preset(83, 60))
-
-    self.preset_6000_wpm = self.presets_menu.addAction("6000 WPH")
-    self.preset_6000_wpm.triggered.connect(lambda: self.set_preset(100, 60))
+    self.menu_bar = SessionMenuBarWidget(appdata=self._appdata)
 
     self.main_layout.addWidget(self.menu_bar)
-
 
     # Configure the QTimer that will be used to control sessions
     self.timer = QTimer()
@@ -257,14 +367,6 @@ class MainWindow(QMainWindow):
 
     self.main_widget.setLayout(self.main_layout)
     self.setCentralWidget(self.main_widget)
-
-  def set_preset(self, wpm, time):
-    if(self.session_state == SessionState.NONE):
-      self.target_wpm = wpm
-      self.target_time = time
-
-      self.wpm_line_edit.setText(str(self.target_wpm))
-      self.time_line_edit.setText(str(self.target_time))
 
   def handle_timeout(self):
     if self.intervals_passed >= self.target_time:
